@@ -2,8 +2,9 @@ import { ethers } from 'ethers';
 import { ImmutableXClient } from '@imtbl/imx-sdk';
 import { Link } from '@imtbl/imx-sdk';
 import { ImmutableMethodResults, MintableERC721TokenType } from '@imtbl/imx-sdk';
-import { useEffect, useState } from 'react';
-import { Card, ListGroup, ListGroupItem, Row, Col, Container } from 'react-bootstrap';
+import Web3 from 'web3';
+import { SetStateAction, useEffect, useState } from 'react';
+import { Card, ListGroup, ListGroupItem, Row, Col, Container, Modal, Button, InputGroup, Form } from 'react-bootstrap';
 
 require('dotenv').config();
 
@@ -24,6 +25,9 @@ const Inventory = ({ client, link, wallet }: InventoryProps) => {
 	const [sellTokenId, setSellTokenId] = useState('');
 	const [sellTokenAddress, setSellTokenAddress] = useState('');
 	const [sellCancelOrder, setSellCancelOrder] = useState('');
+	const [show, setShow] = useState(false);
+
+
 
 	useEffect(() => {
 		load()
@@ -96,6 +100,23 @@ const Inventory = ({ client, link, wallet }: InventoryProps) => {
 		setInventory(await client.getAssets({ user: wallet, sell_orders: true }))
 	};
 
+	const handleClose = () => {setShow(false);}
+	const handleShow = (item: any) => {
+		setShow(true);
+		setSellTokenId(item.token_id)
+		setSellTokenAddress(item.token_address)
+		console.log(item)
+	}
+
+	const handleAmountChange = (value: any) => {
+		setSellAmount(value);
+	}
+
+	async function handleSave(){
+		handleClose()
+		sellNFT()
+	}
+
 	return (
 		<div>
 			<div>
@@ -146,26 +167,47 @@ const Inventory = ({ client, link, wallet }: InventoryProps) => {
 					<Row xs={1} md={4} className="g-4">
 						{inventory.result !== null && inventory.result !== undefined && inventory.result.map((item: any) => {
 							return (
-								<Col>
-									<Card style={{ width: '18rem' }}>
-										<Card.Img variant="top" style={{width: '100%', height: '15vw', objectFit: 'cover'}} src={item.collection.icon_url} />
-										<Card.Body>
-											<Card.Title>Card Title</Card.Title>
-											<Card.Text>
-												{item.collection.name}
-											</Card.Text>
-										</Card.Body>
-										<ListGroup className="list-group-flush">
-											<ListGroupItem>Cras justo odio</ListGroupItem>
-											<ListGroupItem>Dapibus ac facilisis in</ListGroupItem>
-											<ListGroupItem>Vestibulum at eros</ListGroupItem>
-										</ListGroup>
-										<Card.Body>
-											<Card.Link href="#">Card Link</Card.Link>
-											<Card.Link href="#">Another Link</Card.Link>
-										</Card.Body>
-									</Card>
-								</Col>)
+								<>
+									<Col>
+										<Card style={{ width: '18rem' }}>
+											<Card.Img variant="top" style={{ width: '100%', height: '15vw', objectFit: 'cover' }} src={item.collection.icon_url} />
+											<Card.Body>
+												<Card.Title>Card Title</Card.Title>
+												<Card.Text>
+													{item.collection.name}
+												</Card.Text>
+											</Card.Body>
+											<ListGroup className="list-group-flush">
+												<ListGroupItem>{item.token_id}</ListGroupItem>
+												<ListGroupItem>{JSON.stringify(item)}</ListGroupItem>
+											</ListGroup>
+											<Card.Body>
+												<Card.Link onClick={()=>handleShow(item)}>Sell</Card.Link>
+												<Card.Link href="#">Another Link</Card.Link>
+											</Card.Body>
+										</Card>
+									</Col>
+									<Modal show={show} onHide={handleClose}>
+										<Modal.Header closeButton>
+											<Modal.Title>Modal heading</Modal.Title>
+										</Modal.Header>
+										<InputGroup hasValidation>
+											<InputGroup.Text>ETH</InputGroup.Text>
+											<Form.Control onChange={e=> handleAmountChange(e.target.value)} type="number" required isInvalid />
+											<Form.Control.Feedback type="invalid">
+												Please choose a price in ETH.
+											</Form.Control.Feedback>
+										</InputGroup>
+										<Modal.Footer>
+											<Button variant="secondary" onClick={handleClose}>
+												Close
+											</Button>
+											<Button variant="primary" onClick={handleSave}>
+												Save Changes
+											</Button>
+										</Modal.Footer>
+									</Modal>
+								</>)
 						}
 						)}
 					</Row>

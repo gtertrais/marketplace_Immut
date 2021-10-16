@@ -40,6 +40,12 @@ const App = () => {
 		setBalance(await client.getBalance({ user: res.address, tokenAddress: 'eth' }))
 	};
 
+	// logout a user
+	async function linkOut(): Promise<void> {
+		setWallet('undefined')
+		setBalance()
+	};
+
 	function handleTabs() {
 		if (client.address) {
 			switch (tab) {
@@ -58,7 +64,6 @@ const App = () => {
 						wallet={wallet}
 					/>
 				case 'coins':
-					if (wallet === 'undefined') return <div>Connect wallet</div>
 					return <Coins
 						client={client}
 						link={link}
@@ -74,10 +79,10 @@ const App = () => {
 		return null
 	}
 
-	const showDropdown = (e) => {
+	const showDropdown = () => {
 		setShow(!show);
 	}
-	const hideDropdown = e => {
+	const hideDropdown = () => {
 		setShow(false);
 	}
 
@@ -91,26 +96,33 @@ const App = () => {
 					<Navbar.Collapse id="responsive-navbar-nav">
 						<Nav className="me-auto">
 							<Nav.Link onClick={() => setTab('marketplace')}>Marketplace</Nav.Link>
-							<Nav.Link onClick={() => setTab('inventory')}>Inventory</Nav.Link>
-							<Nav.Link onClick={() => setTab('bridging')}>Deposit and withdrawal</Nav.Link>
 							<NavDropdown
-								title="Dropdown"
+								title="Drops"
 								id="collasible-nav-dropdown"
 								show={show}
 								onMouseEnter={showDropdown}
-								onMouseLeave={hideDropdown}
-								style={{ width: '166px' }}>
+								onMouseLeave={hideDropdown}>
 								<NavDropdown.Item onClick={() => setTab('coins')}>Coins</NavDropdown.Item>
 							</NavDropdown>
+							
+							{wallet !== 'undefined' &&
+								<>
+									<Nav.Link onClick={() => setTab('bridging')}>Deposit and withdrawal</Nav.Link>
+									<Nav.Link onClick={() => setTab('inventory')}>Profile</Nav.Link>
+								</>}
 						</Nav>
-						<Nav>
-							{wallet === 'undefined' &&
-								<Nav.Link onClick={linkSetup}>Setup</Nav.Link>}
+						<Nav className="me-auto">
 							{wallet !== 'undefined' &&
 								<>
 									<Navbar.Text >Active wallet: {wallet.replace(wallet.substring(4, 38), "...")}</Navbar.Text>
 									<Navbar.Text style={{ paddingLeft: '40px' }}>ETH balance (in wei): {balance?.balance?.toString()}</Navbar.Text>
 								</>}
+						</Nav>
+						<Nav className="me-auto">
+							{wallet === 'undefined' &&
+								<Nav.Link onClick={linkSetup}>Setup</Nav.Link>}
+							{wallet !== 'undefined' &&
+								<Nav.Link onClick={linkOut}>Signout</Nav.Link>}
 						</Nav>
 					</Navbar.Collapse>
 				</Container>
