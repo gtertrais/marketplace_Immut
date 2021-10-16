@@ -43,7 +43,7 @@ const App = () => {
 	// logout a user
 	async function linkOut(): Promise<void> {
 		setWallet('undefined')
-		setBalance()
+		setBalance(0)
 	};
 
 	function handleTabs() {
@@ -91,7 +91,7 @@ const App = () => {
 		<div className="App">
 			<Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
 				<Container>
-					<Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand>
+					<Navbar.Brand href="#home">Gaspard & Joseph</Navbar.Brand>
 					<Navbar.Toggle aria-controls="responsive-navbar-nav" />
 					<Navbar.Collapse id="responsive-navbar-nav">
 						<Nav className="me-auto">
@@ -115,7 +115,7 @@ const App = () => {
 							{wallet !== 'undefined' &&
 								<>
 									<Navbar.Text >Active wallet: {wallet.replace(wallet.substring(4, 38), "...")}</Navbar.Text>
-									<Navbar.Text style={{ paddingLeft: '40px' }}>ETH balance (in wei): {balance?.balance?.toString()}</Navbar.Text>
+									<Navbar.Text style={{ paddingLeft: '40px' }}>Balance: {balance?.balance/ 1e18?.toString() + ' ETH'}</Navbar.Text>
 								</>}
 						</Nav>
 						<Nav className="me-auto">

@@ -3,7 +3,7 @@ import { ImmutableXClient } from '@imtbl/imx-sdk';
 import { Link } from '@imtbl/imx-sdk';
 import { ImmutableMethodResults, MintableERC721TokenType } from '@imtbl/imx-sdk';
 import Web3 from 'web3';
-import { SetStateAction, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, ListGroup, ListGroupItem, Row, Col, Container, Modal, Button, InputGroup, Form } from 'react-bootstrap';
 
 require('dotenv').config();
@@ -25,7 +25,8 @@ const Inventory = ({ client, link, wallet }: InventoryProps) => {
 	const [sellTokenId, setSellTokenId] = useState('');
 	const [sellTokenAddress, setSellTokenAddress] = useState('');
 	const [sellCancelOrder, setSellCancelOrder] = useState('');
-	const [show, setShow] = useState(false);
+	const [showSell, setShowSell] = useState(false);
+	const [showCancel, setShowCancel] = useState(false);
 
 
 
@@ -100,71 +101,46 @@ const Inventory = ({ client, link, wallet }: InventoryProps) => {
 		setInventory(await client.getAssets({ user: wallet, sell_orders: true }))
 	};
 
-	const handleClose = () => {setShow(false);}
-	const handleShow = (item: any) => {
-		setShow(true);
+	const handleCloseSell = () => { setShowSell(false); }
+	const handleCloseCancel = () => { setShowCancel(false); }
+
+	const handleShowSell = (item: any) => {
+		setShowSell(true)
 		setSellTokenId(item.token_id)
 		setSellTokenAddress(item.token_address)
-		console.log(item)
+	}
+
+	const handleCancelSell = (item: any) => {
+		setShowCancel(true)
+		console.log(item);
+
+		setSellCancelOrder(item.orders.sell_orders[0].order_id)
 	}
 
 	const handleAmountChange = (value: any) => {
 		setSellAmount(value);
 	}
 
-	async function handleSave(){
-		handleClose()
+	const handleConfirmCancel = () => {
+		handleCloseCancel()
+		cancelSell()
+	}
+
+	async function handleSell() {
+		handleCloseSell()
 		sellNFT()
+	}
+
+	const getPrice = (item: any) => {
+		let price = parseInt(item.orders.sell_orders[0].buy_quantity._hex)/1e18;
+		return price
 	}
 
 	return (
 		<div>
 			<div>
-				Mint NFT:
-				<br />
-				<label>
-					Token ID:
-					<input type="text" value={mintTokenId} onChange={e => setMintTokenId(e.target.value)} />
-				</label>
-				<label>
-					Blueprint:
-					<input type="text" value={mintBlueprint} onChange={e => setMintBlueprint(e.target.value)} />
-				</label>
-				<button onClick={mint}>Mint</button>
-			</div>
-			<br />
-			<div>
-				Sell asset (create sell order):
-				<br />
-				<label>
-					Amount (ETH):
-					<input type="text" value={sellAmount} onChange={e => setSellAmount(e.target.value)} />
-				</label>
-				<label>
-					Token ID:
-					<input type="text" value={sellTokenId} onChange={e => setSellTokenId(e.target.value)} />
-				</label>
-				<label>
-					Token Address:
-					<input type="text" value={sellTokenAddress} onChange={e => setSellTokenAddress(e.target.value)} />
-				</label>
-				<button onClick={sellNFT}>Sell</button>
-			</div>
-			<br />
-			<div>
-				Cancel sell order:
-				<br />
-				<label>
-					Order ID:
-					<input type="text" value={sellCancelOrder} onChange={e => setSellCancelOrder(e.target.value)} />
-				</label>
-				<button onClick={cancelSell}>Cancel</button>
-			</div>
-			<br /><br /><br />
-			<div>
-				Inventory:
 				<Container>
-					<Row xs={1} md={4} className="g-4">
+					<Row xs={1} md={3} lg={3} className="g-4">
 						{inventory.result !== null && inventory.result !== undefined && inventory.result.map((item: any) => {
 							return (
 								<>
@@ -179,31 +155,47 @@ const Inventory = ({ client, link, wallet }: InventoryProps) => {
 											</Card.Body>
 											<ListGroup className="list-group-flush">
 												<ListGroupItem>{item.token_id}</ListGroupItem>
-												<ListGroupItem>{JSON.stringify(item)}</ListGroupItem>
+												{Object.keys(item.orders).length !== 0 &&
+													<ListGroupItem>{'Price: ' + getPrice(item) + ' ETH'}</ListGroupItem>}
 											</ListGroup>
 											<Card.Body>
-												<Card.Link onClick={()=>handleShow(item)}>Sell</Card.Link>
-												<Card.Link href="#">Another Link</Card.Link>
+												{Object.keys(item.orders).length === 0 &&
+													<Card.Link onClick={() => handleShowSell(item)}>Sell</Card.Link>}
+												{Object.keys(item.orders).length !== 0 &&
+													<Card.Link onClick={() => handleCancelSell(item)}>Cancel Sell</Card.Link>}
 											</Card.Body>
 										</Card>
 									</Col>
-									<Modal show={show} onHide={handleClose}>
+									<Modal show={showSell} onHide={handleCloseSell}>
 										<Modal.Header closeButton>
 											<Modal.Title>Modal heading</Modal.Title>
 										</Modal.Header>
 										<InputGroup hasValidation>
 											<InputGroup.Text>ETH</InputGroup.Text>
-											<Form.Control onChange={e=> handleAmountChange(e.target.value)} type="number" required isInvalid />
+											<Form.Control onChange={e => handleAmountChange(e.target.value)} type="number" required isInvalid />
 											<Form.Control.Feedback type="invalid">
 												Please choose a price in ETH.
 											</Form.Control.Feedback>
 										</InputGroup>
 										<Modal.Footer>
-											<Button variant="secondary" onClick={handleClose}>
+											<Button variant="secondary" onClick={handleCloseSell}>
 												Close
 											</Button>
-											<Button variant="primary" onClick={handleSave}>
+											<Button variant="primary" onClick={handleSell}>
 												Save Changes
+											</Button>
+										</Modal.Footer>
+									</Modal>
+									<Modal show={showCancel} onHide={handleCloseCancel}>
+										<Modal.Header closeButton>
+											<Modal.Title>Are you Sure ?</Modal.Title>
+										</Modal.Header>
+										<Modal.Footer>
+											<Button variant="secondary" onClick={handleCloseCancel}>
+												No
+											</Button>
+											<Button variant="primary" onClick={handleConfirmCancel}>
+												Yes
 											</Button>
 										</Modal.Footer>
 									</Modal>
