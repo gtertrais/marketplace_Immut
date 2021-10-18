@@ -18,7 +18,7 @@ const App = () => {
 	// general
 	const [tab, setTab] = useState('marketplace');
 	const [wallet, setWallet] = useState('undefined');
-	const [balance, setBalance] = useState<ImmutableMethodResults.ImmutableGetBalanceResult>(Object);
+	const [balance, setBalance]: any = useState<ImmutableMethodResults.ImmutableGetBalanceResult>(Object);
 	const [client, setClient] = useState<ImmutableXClient>(Object);
 	const [show, setShow] = useState(false);
 
@@ -115,7 +115,7 @@ const App = () => {
 							{wallet !== 'undefined' &&
 								<>
 									<Navbar.Text >Active wallet: {wallet.replace(wallet.substring(4, 38), "...")}</Navbar.Text>
-									<Navbar.Text style={{ paddingLeft: '40px' }}>Balance: {balance?.balance/ 1e18?.toString() + ' ETH'}</Navbar.Text>
+									<Navbar.Text style={{ paddingLeft: '40px' }}>Balance: {balance?.balance?.toString() + ' ETH'}</Navbar.Text>
 								</>}
 						</Nav>
 						<Nav className="me-auto">
