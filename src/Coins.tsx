@@ -31,6 +31,8 @@ const Coins = ({ client, link, wallet }: CoinsProps) => {
 	async function mint() {
 		// initialise a client with the minter for your NFT smart contract
 		const provider = new ethers.providers.JsonRpcProvider(`https://eth-ropsten.alchemyapi.io/v2/${process.env.REACT_APP_ALCHEMY_API_KEY}`);
+		console.log(provider);
+		
 		const minterPrivateKey: string = process.env.REACT_APP_MINTER_PK ?? ''; // registered minter for your contract
 		const minter = new ethers.Wallet(minterPrivateKey).connect(provider);
 		const publicApiUrl: string = process.env.REACT_APP_ROPSTEN_ENV_URL ?? '';

@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@imtbl/imx-link-lib": "^1.1.181",
     "@imtbl/imx-link-sdk": "^2.0.16",
     "@imtbl/imx-sdk": "^1.1.0",
     "@types/node": "^12.0.0",

@@ -22,12 +22,12 @@ const Marketplace = ({ client, link }: MarketplaceProps) => {
 	}, [])
 
 	async function load(): Promise<void> {
-		let orders = await client.getOrders({ status: ImmutableOrderStatus.active });
-		for (var i = 0; i < orders.result.length; i++) {
+		const options = { method: 'GET', headers: { Accept: 'application/json' } };
 
-
-		}
-		setMarketplace(orders)
+		fetch('https://api.ropsten.x.immutable.com/v1/orders', options)
+			.then(response => response.json())
+			.then(response => setMarketplace(response))
+			.catch(err => console.error(err));
 	};
 
 	// buy an asset
@@ -46,7 +46,7 @@ const Marketplace = ({ client, link }: MarketplaceProps) => {
 
 
 	const getPrice = (item: any) => {
-		let price = parseInt(item.buy.data.quantity._hex) / 1e18
+		let price = parseInt(item.buy.data.quantity) / 1e18
 		return price
 	}
 

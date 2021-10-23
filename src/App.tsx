@@ -2,6 +2,7 @@ import './App.css';
 import { ImmutableXClient } from '@imtbl/imx-sdk';
 import { Link } from '@imtbl/imx-sdk';
 import { ImmutableMethodResults } from '@imtbl/imx-sdk';
+import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import Marketplace from './Marketplace';
 import Inventory from './Inventory';
@@ -18,7 +19,7 @@ const App = () => {
 	// general
 	const [tab, setTab] = useState('marketplace');
 	const [wallet, setWallet] = useState('undefined');
-	const [balance, setBalance]: any = useState<ImmutableMethodResults.ImmutableGetBalanceResult>(Object);
+	const [balance, setBalance] = useState<ImmutableMethodResults.ImmutableGetBalanceResult>(Object);
 	const [client, setClient] = useState<ImmutableXClient>(Object);
 	const [show, setShow] = useState(false);
 
@@ -30,20 +31,28 @@ const App = () => {
 	// initialise an Immutable X Client to interact with apis more easily
 	async function buildIMX() {
 		const publicApiUrl: string = process.env.REACT_APP_ROPSTEN_ENV_URL ?? '';
-		setClient(await ImmutableXClient.build({ publicApiUrl }))
+		const starkContractAddress: string = process.env.REACT_APP_ROPSTEN_STARK_CONTRACT_ADDRESS ?? '';
+		const registrationContractAddress: string = process.env.REACT_APP_ROPSTEN_REGISTRATION_ADDRESS ?? '';
+		const provider = new ethers.providers.JsonRpcProvider(`https://eth-ropsten.alchemyapi.io/v2/${process.env.REACT_APP_ALCHEMY_API_KEY}`);
+		const minterPrivateKey: string = '0x602db0a2557fa0d637255feaad07180e00bea46fe159bda15ae23d014bcf67c9';
+		const minter = new ethers.Wallet(minterPrivateKey).connect(provider);
+		
+		setClient(await ImmutableXClient.build({ publicApiUrl, signer: minter, starkContractAddress: starkContractAddress, registrationContractAddress: registrationContractAddress }))
 	}
 
 	// register and/or setup a user
 	async function linkSetup(): Promise<void> {
-		const res = await link.setup({})
-		setWallet(res.address)
-		setBalance(await client.getBalance({ user: res.address, tokenAddress: 'eth' }))
+		const ethAddress: string = '0x6d00e4FD0a5c0BD39801976f867Dc9822557C564'
+		
+		await client.registerImx({ etherKey: ethAddress, starkPublicKey: client.starkPublicKey });
+		
+		setWallet(ethAddress.toLowerCase());
+		setBalance(await client.getBalance({ user: ethAddress.toLowerCase(), tokenAddress: 'eth' }))
 	};
 
 	// logout a user
 	async function linkOut(): Promise<void> {
 		setWallet('undefined')
-		setBalance(0)
 	};
 
 	function handleTabs() {
@@ -91,7 +100,7 @@ const App = () => {
 		<div className="App">
 			<Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
 				<Container>
-					<Navbar.Brand href="#home">Gaspard & Joseph</Navbar.Brand>
+					<Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand>
 					<Navbar.Toggle aria-controls="responsive-navbar-nav" />
 					<Navbar.Collapse id="responsive-navbar-nav">
 						<Nav className="me-auto">
@@ -115,7 +124,7 @@ const App = () => {
 							{wallet !== 'undefined' &&
 								<>
 									<Navbar.Text >Active wallet: {wallet.replace(wallet.substring(4, 38), "...")}</Navbar.Text>
-									<Navbar.Text style={{ paddingLeft: '40px' }}>Balance: {balance?.balance?.toString() + ' ETH'}</Navbar.Text>
+									<Navbar.Text style={{ paddingLeft: '40px' }}>ETH balance (in wei): {balance?.balance?.toString()}</Navbar.Text>
 								</>}
 						</Nav>
 						<Nav className="me-auto">
