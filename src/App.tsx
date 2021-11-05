@@ -1,6 +1,7 @@
 import './App.css';
 import { ImmutableXClient } from '@imtbl/imx-sdk';
 import { Link } from '@imtbl/imx-sdk';
+import { Magic } from 'magic-sdk';
 import { ImmutableMethodResults } from '@imtbl/imx-sdk';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
@@ -22,6 +23,7 @@ const App = () => {
 	const [balance, setBalance] = useState<ImmutableMethodResults.ImmutableGetBalanceResult>(Object);
 	const [client, setClient] = useState<ImmutableXClient>(Object);
 	const [show, setShow] = useState(false);
+	const [address, setAddress]= useState('');
 
 
 	useEffect(() => {
@@ -33,16 +35,23 @@ const App = () => {
 		const publicApiUrl: string = process.env.REACT_APP_ROPSTEN_ENV_URL ?? '';
 		const starkContractAddress: string = process.env.REACT_APP_ROPSTEN_STARK_CONTRACT_ADDRESS ?? '';
 		const registrationContractAddress: string = process.env.REACT_APP_ROPSTEN_REGISTRATION_ADDRESS ?? '';
-		const provider = new ethers.providers.JsonRpcProvider(`https://eth-ropsten.alchemyapi.io/v2/${process.env.REACT_APP_ALCHEMY_API_KEY}`);
+		const magic:any = new Magic('pk_live_EEE47A00FB271E23', {network: 'ropsten',});
+		const provider:any = new ethers.providers.Web3Provider(magic.rpcProvider);
 		const minterPrivateKey: string = '0x602db0a2557fa0d637255feaad07180e00bea46fe159bda15ae23d014bcf67c9';
-		const minter = new ethers.Wallet(minterPrivateKey).connect(provider);
+		const minter = new ethers.Wallet(ethers.Wallet.createRandom()).connect(provider);
+		console.log(publicApiUrl);
+		console.log(starkContractAddress);
+		console.log(registrationContractAddress);
 		
+		console.log(minter);
+		
+		setAddress(minter.address);
 		setClient(await ImmutableXClient.build({ publicApiUrl, signer: minter, starkContractAddress: starkContractAddress, registrationContractAddress: registrationContractAddress }))
 	}
 
 	// register and/or setup a user
 	async function linkSetup(): Promise<void> {
-		const ethAddress: string = '0x6d00e4FD0a5c0BD39801976f867Dc9822557C564'
+		const ethAddress: string = address;
 		
 		await client.registerImx({ etherKey: ethAddress, starkPublicKey: client.starkPublicKey });
 		
